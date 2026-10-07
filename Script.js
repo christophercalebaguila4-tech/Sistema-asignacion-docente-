@@ -1,89 +1,253 @@
-// ==========================================
-// CONFIGURACIÓN GENERAL
-// ==========================================
+// ============================================
+// CONFIGURACIÓN
+// ============================================
 
-let horasTotales = 5833;
+let configuracion = JSON.parse(
+    localStorage.getItem("configuracionDocentes")
+) || {
 
-let minimoHoras = 25;
+    horasTotales: 5833,
 
-let presupuesto = 100000;
+    presupuesto: 100000,
 
-let docentes = [];
+    minimo: 25,
 
-let asignaciones = [];
+    flexible: 22,
+
+    maxA: 40,
+
+    maxB: 30
+
+};
 
 
-// ==========================================
-// CAMBIAR SECCIONES
-// ==========================================
+// ============================================
+// DATOS
+// ============================================
 
-function mostrarSeccion(id) {
+let docentes = JSON.parse(
+    localStorage.getItem("docentes")
+) || [];
 
-    const secciones = document.querySelectorAll(".seccion");
+let asignaturas = JSON.parse(
+    localStorage.getItem("asignaturas")
+) || [];
 
-    secciones.forEach(seccion => {
-        seccion.classList.add("oculto");
-    });
+let asignaciones = JSON.parse(
+    localStorage.getItem("asignaciones")
+) || [];
 
-    document.getElementById(id).classList.remove("oculto");
 
-    actualizarSistema();
+// ============================================
+// LOGIN
+// ============================================
+
+function iniciarSesion() {
+
+    const usuario =
+        document.getElementById("usuario").value.trim();
+
+    const password =
+        document.getElementById("password").value.trim();
+
+
+    /*
+       USUARIO DE DEMOSTRACIÓN
+
+       Usuario:
+       director
+
+       Contraseña:
+       1234
+    */
+
+    if (
+        usuario === "director" &&
+        password === "1234"
+    ) {
+
+        document
+            .getElementById("login")
+            .classList.add("oculto");
+
+        document
+            .getElementById("sistema")
+            .classList.remove("oculto");
+
+        actualizarTodo();
+
+    } else {
+
+        document.getElementById(
+            "errorLogin"
+        ).textContent =
+            "Usuario o contraseña incorrectos.";
+
+    }
+
 }
 
 
-// ==========================================
+// ============================================
+// CERRAR SESIÓN
+// ============================================
+
+function cerrarSesion() {
+
+    document
+        .getElementById("sistema")
+        .classList.add("oculto");
+
+    document
+        .getElementById("login")
+        .classList.remove("oculto");
+
+}
+
+
+// ============================================
+// NAVEGACIÓN
+// ============================================
+
+function mostrar(id) {
+
+    document
+        .querySelectorAll(".seccion")
+        .forEach(seccion => {
+
+            seccion.classList.add("oculto");
+
+        });
+
+
+    document
+        .getElementById(id)
+        .classList.remove("oculto");
+
+
+    actualizarTodo();
+
+}
+
+
+// ============================================
+// GUARDAR DATOS
+// ============================================
+
+function guardarDatos() {
+
+    localStorage.setItem(
+        "docentes",
+        JSON.stringify(docentes)
+    );
+
+    localStorage.setItem(
+        "asignaturas",
+        JSON.stringify(asignaturas)
+    );
+
+    localStorage.setItem(
+        "asignaciones",
+        JSON.stringify(asignaciones)
+    );
+
+    localStorage.setItem(
+        "configuracionDocentes",
+        JSON.stringify(configuracion)
+    );
+
+}
+
+
+// ============================================
 // AGREGAR DOCENTE
-// ==========================================
+// ============================================
 
 function agregarDocente() {
 
-    const nombre = document
-        .getElementById("nombreDocente")
-        .value
-        .trim();
+    const nombre =
+        document.getElementById(
+            "nombreDocente"
+        ).value.trim();
 
-    const tipo = document
-        .getElementById("tipoDocente")
-        .value;
+    const tipo =
+        document.getElementById(
+            "tipoDocente"
+        ).value;
 
-    const horasRH = Number(
-        document.getElementById("horasRH").value
-    );
+    const horasRH =
+        Number(
+            document.getElementById(
+                "horasRH"
+            ).value
+        );
 
-    const compartido = document
-        .getElementById("docenteCompartido")
-        .checked;
+    const limiteB =
+        Number(
+            document.getElementById(
+                "limiteB"
+            ).value
+        ) || configuracion.maxB;
+
+    const compartido =
+        document.getElementById(
+            "compartido"
+        ).checked;
 
 
-    if (nombre === "") {
+    if (!nombre) {
 
-        alert("Escribe el nombre del docente.");
+        alert(
+            "Escribe el nombre del docente."
+        );
 
         return;
+
     }
 
 
     if (horasRH <= 0) {
 
-        alert("Las horas asignadas por Recursos Humanos deben ser mayores a 0.");
-
-        return;
-    }
-
-
-    // Máximo permitido para docentes A
-
-    if (tipo === "A" && horasRH > 40) {
-
         alert(
-            "Un docente tipo A no puede tener más de 40 horas."
+            "Las horas autorizadas por RH deben ser mayores a 0."
         );
 
         return;
+
     }
 
 
-    const docente = {
+    if (
+        tipo === "A" &&
+        horasRH > configuracion.maxA
+    ) {
+
+        alert(
+            "Un docente A no puede superar " +
+            configuracion.maxA +
+            " horas."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        tipo === "B" &&
+        horasRH > limiteB
+    ) {
+
+        alert(
+            "Las horas del docente B superan su límite."
+        );
+
+        return;
+
+    }
+
+
+    docentes.push({
 
         id: Date.now(),
 
@@ -93,256 +257,183 @@ function agregarDocente() {
 
         horasRH: horasRH,
 
-        horasAsignadas: 0,
+        limiteB:
+            tipo === "B"
+                ? limiteB
+                : null,
 
-        compartido: compartido
+        compartido: compartido,
 
-    };
-
-
-    docentes.push(docente);
-
-
-    document.getElementById("nombreDocente").value = "";
-
-    document.getElementById("horasRH").value = "";
-
-    document.getElementById("docenteCompartido").checked = false;
-
-
-    actualizarSistema();
-}
-
-
-// ==========================================
-// ASIGNAR HORAS
-// ==========================================
-
-function asignarHoras() {
-
-    const id = Number(
-        document.getElementById("docenteAsignacion").value
-    );
-
-    const asignatura = document
-        .getElementById("asignatura")
-        .value
-        .trim();
-
-    const horas = Number(
-        document.getElementById("horasAsignar").value
-    );
-
-
-    const docente = docentes.find(
-        d => d.id === id
-    );
-
-
-    if (!docente) {
-
-        mostrarMensaje(
-            "Selecciona un docente.",
-            true
-        );
-
-        return;
-    }
-
-
-    if (asignatura === "") {
-
-        mostrarMensaje(
-            "Escribe la asignatura.",
-            true
-        );
-
-        return;
-    }
-
-
-    if (horas <= 0) {
-
-        mostrarMensaje(
-            "Las horas deben ser mayores a cero.",
-            true
-        );
-
-        return;
-    }
-
-
-    // ==========================================
-    // NO SUPERAR HORAS AUTORIZADAS POR RH
-    // ==========================================
-
-    if (
-        docente.horasAsignadas + horas >
-        docente.horasRH
-    ) {
-
-        mostrarMensaje(
-
-            `No se pueden asignar ${horas} horas. 
-            Recursos Humanos autorizó solamente 
-            ${docente.horasRH} horas para este docente.`,
-
-            true
-        );
-
-        return;
-    }
-
-
-    // ==========================================
-    // MÁXIMO DE 40 HORAS PARA TIPO A
-    // ==========================================
-
-    if (
-        docente.tipo === "A" &&
-        docente.horasAsignadas + horas > 40
-    ) {
-
-        mostrarMensaje(
-            "El docente tipo A no puede superar las 40 horas.",
-            true
-        );
-
-        return;
-    }
-
-
-    // ==========================================
-    // ASIGNAR
-    // ==========================================
-
-    docente.horasAsignadas += horas;
-
-
-    asignaciones.push({
-
-        docenteId: docente.id,
-
-        docente: docente.nombre,
-
-        asignatura: asignatura,
-
-        horas: horas,
-
-        tipo: docente.tipo
+        horasAsignadas: 0
 
     });
 
 
-    mostrarMensaje(
-        "Horas asignadas correctamente.",
-        false
-    );
+    guardarDatos();
 
+    limpiarFormularioDocente();
 
-    document.getElementById("asignatura").value = "";
-
-    document.getElementById("horasAsignar").value = "";
-
-
-    actualizarSistema();
-}
-
-
-// ==========================================
-// MENSAJES
-// ==========================================
-
-function mostrarMensaje(texto, error) {
-
-    const elemento =
-        document.getElementById("mensajeAsignacion");
-
-    elemento.innerHTML = `
-
-        <div class="${error ? "alerta" : "correcto"}">
-
-            ${texto}
-
-        </div>
-
-    `;
-}
-
-
-// ==========================================
-// ACTUALIZAR TODO EL SISTEMA
-// ==========================================
-
-function actualizarSistema() {
-
-    actualizarDocentes();
-
-    actualizarSelectDocentes();
-
-    actualizarAsignaciones();
-
-    actualizarHoras();
-
-    actualizarAlertas();
+    actualizarTodo();
 
 }
 
 
-// ==========================================
-// TABLA DE DOCENTES
-// ==========================================
+// ============================================
+// LIMPIAR DOCENTE
+// ============================================
+
+function limpiarFormularioDocente() {
+
+    document.getElementById(
+        "nombreDocente"
+    ).value = "";
+
+    document.getElementById(
+        "horasRH"
+    ).value = "";
+
+    document.getElementById(
+        "limiteB"
+    ).value = "";
+
+    document.getElementById(
+        "compartido"
+    ).checked = false;
+
+}
+
+
+// ============================================
+// ELIMINAR DOCENTE
+// ============================================
+
+function eliminarDocente(id) {
+
+    const tieneAsignaciones =
+        asignaciones.some(
+            a => a.docenteId === id
+        );
+
+
+    if (tieneAsignaciones) {
+
+        alert(
+            "No puedes eliminar un docente que ya tiene horas asignadas."
+        );
+
+        return;
+
+    }
+
+
+    docentes =
+        docentes.filter(
+            d => d.id !== id
+        );
+
+
+    guardarDatos();
+
+    actualizarTodo();
+
+}
+
+
+// ============================================
+// TABLA DOCENTES
+// ============================================
 
 function actualizarDocentes() {
 
     const tabla =
-        document.getElementById("tablaDocentes");
+        document.getElementById(
+            "tablaDocentes"
+        );
 
     tabla.innerHTML = "";
 
 
     docentes.forEach(docente => {
 
-        let estado = "Correcto";
+        let estado = "";
+
+        let clase = "";
+
 
         if (
-            docente.horasAsignadas < minimoHoras
+            docente.horasAsignadas >=
+            configuracion.minimo
         ) {
 
-            estado = "⚠️ Falta alcanzar mínimo";
+            estado = "Correcto";
+
+            clase = "estado-ok";
 
         }
 
-
-        if (
-            docente.horasAsignadas >
-            docente.horasRH
+        else if (
+            docente.horasAsignadas >=
+            configuracion.flexible
         ) {
 
-            estado = "❌ Excede horas RH";
+            estado =
+                "Flexible: revisar";
+
+            clase =
+                "estado-alerta";
+
+        }
+
+        else {
+
+            estado =
+                "Por debajo del mínimo";
+
+            clase =
+                "estado-error";
 
         }
 
 
         tabla.innerHTML += `
 
-            <tr>
+        <tr>
 
-                <td>${docente.nombre}</td>
+            <td>
+                ${docente.nombre}
+            </td>
 
-                <td>${docente.tipo}</td>
+            <td>
+                ${docente.tipo}
+            </td>
 
-                <td>${docente.horasRH}</td>
+            <td>
+                ${docente.horasRH}
+            </td>
 
-                <td>
-                    ${docente.compartido ? "Sí" : "No"}
-                </td>
+            <td>
+                ${docente.horasAsignadas}
+            </td>
 
-                <td>${docente.horasAsignadas}</td>
+            <td>
+                ${docente.compartido ? "Sí" : "No"}
+            </td>
 
-                <td>${estado}</td>
+            <td class="${clase}">
+                ${estado}
+            </td>
 
-            </tr>
+            <td>
+
+                <button
+                    onclick="eliminarDocente(${docente.id})"
+                >
+                    Eliminar
+                </button>
+
+            </td>
+
+        </tr>
 
         `;
 
@@ -351,14 +442,167 @@ function actualizarDocentes() {
 }
 
 
-// ==========================================
-// SELECT DE DOCENTES
-// ==========================================
+// ============================================
+// ASIGNATURAS
+// ============================================
+
+function agregarAsignatura() {
+
+    const nombre =
+        document.getElementById(
+            "nombreAsignatura"
+        ).value.trim();
+
+    const horas =
+        Number(
+            document.getElementById(
+                "horasAsignatura"
+            ).value
+        );
+
+    const tipo =
+        document.getElementById(
+            "tipoAsignatura"
+        ).value;
+
+
+    if (!nombre || horas <= 0) {
+
+        alert(
+            "Completa correctamente la asignatura."
+        );
+
+        return;
+
+    }
+
+
+    asignaturas.push({
+
+        id: Date.now(),
+
+        nombre: nombre,
+
+        horas: horas,
+
+        tipo: tipo
+
+    });
+
+
+    guardarDatos();
+
+    document.getElementById(
+        "nombreAsignatura"
+    ).value = "";
+
+    document.getElementById(
+        "horasAsignatura"
+    ).value = "";
+
+
+    actualizarTodo();
+
+}
+
+
+// ============================================
+// ELIMINAR ASIGNATURA
+// ============================================
+
+function eliminarAsignatura(id) {
+
+    const usada =
+        asignaciones.some(
+            a => a.asignaturaId === id
+        );
+
+
+    if (usada) {
+
+        alert(
+            "No puedes eliminar una asignatura que ya tiene asignaciones."
+        );
+
+        return;
+
+    }
+
+
+    asignaturas =
+        asignaturas.filter(
+            a => a.id !== id
+        );
+
+
+    guardarDatos();
+
+    actualizarTodo();
+
+}
+
+
+// ============================================
+// TABLA ASIGNATURAS
+// ============================================
+
+function actualizarAsignaturas() {
+
+    const tabla =
+        document.getElementById(
+            "tablaAsignaturas"
+        );
+
+    tabla.innerHTML = "";
+
+
+    asignaturas.forEach(asignatura => {
+
+        tabla.innerHTML += `
+
+        <tr>
+
+            <td>
+                ${asignatura.nombre}
+            </td>
+
+            <td>
+                ${asignatura.tipo}
+            </td>
+
+            <td>
+                ${asignatura.horas}
+            </td>
+
+            <td>
+
+                <button
+                    onclick="eliminarAsignatura(${asignatura.id})"
+                >
+                    Eliminar
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+
+// ============================================
+// SELECT DOCENTES
+// ============================================
 
 function actualizarSelectDocentes() {
 
     const select =
-        document.getElementById("docenteAsignacion");
+        document.getElementById(
+            "selectDocente"
+        );
 
 
     select.innerHTML = `
@@ -374,12 +618,12 @@ function actualizarSelectDocentes() {
 
         select.innerHTML += `
 
-            <option value="${docente.id}">
+        <option value="${docente.id}">
 
-                ${docente.nombre}
-                - ${docente.tipo}
+            ${docente.nombre}
+            (${docente.tipo})
 
-            </option>
+        </option>
 
         `;
 
@@ -388,14 +632,276 @@ function actualizarSelectDocentes() {
 }
 
 
-// ==========================================
-// TABLA DE ASIGNACIONES
-// ==========================================
+// ============================================
+// SELECT ASIGNATURAS
+// ============================================
+
+function actualizarSelectAsignaturas() {
+
+    const select =
+        document.getElementById(
+            "selectAsignatura"
+        );
+
+
+    select.innerHTML = `
+
+        <option value="">
+            Seleccionar asignatura
+        </option>
+
+    `;
+
+
+    asignaturas.forEach(asignatura => {
+
+        select.innerHTML += `
+
+        <option value="${asignatura.id}">
+
+            ${asignatura.nombre}
+            (${asignatura.tipo})
+
+        </option>
+
+        `;
+
+    });
+
+}
+
+
+// ============================================
+// ASIGNAR HORAS
+// ============================================
+
+function asignarHoras() {
+
+    const docenteId =
+        Number(
+            document.getElementById(
+                "selectDocente"
+            ).value
+        );
+
+    const asignaturaId =
+        Number(
+            document.getElementById(
+                "selectAsignatura"
+            ).value
+        );
+
+    const cuatrimestre =
+        document.getElementById(
+            "selectCuatrimestre"
+        ).value;
+
+    const horas =
+        Number(
+            document.getElementById(
+                "horasAsignacion"
+            ).value
+        );
+
+
+    const docente =
+        docentes.find(
+            d => d.id === docenteId
+        );
+
+    const asignatura =
+        asignaturas.find(
+            a => a.id === asignaturaId
+        );
+
+
+    if (!docente || !asignatura) {
+
+        mostrarMensaje(
+            "Selecciona docente y asignatura.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if (horas <= 0) {
+
+        mostrarMensaje(
+            "Las horas deben ser mayores a cero.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // ========================================
+    // HORAS TOTALES DISPONIBLES
+    // ========================================
+
+    const totalAsignado =
+        calcularHorasTotales();
+
+
+    if (
+        totalAsignado + horas >
+        configuracion.horasTotales
+    ) {
+
+        mostrarMensaje(
+            "No hay suficientes horas disponibles.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // ========================================
+    // HORAS AUTORIZADAS POR RH
+    // ========================================
+
+    if (
+        docente.horasAsignadas + horas >
+        docente.horasRH
+    ) {
+
+        mostrarMensaje(
+            "No puedes superar las horas autorizadas por Recursos Humanos.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // ========================================
+    // MÁXIMO TIPO A
+    // ========================================
+
+    if (
+        docente.tipo === "A" &&
+        docente.horasAsignadas + horas >
+        configuracion.maxA
+    ) {
+
+        mostrarMensaje(
+            "El docente A no puede superar las " +
+            configuracion.maxA +
+            " horas.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // ========================================
+    // MÁXIMO TIPO B
+    // ========================================
+
+    if (
+        docente.tipo === "B" &&
+        docente.horasAsignadas + horas >
+        docente.limiteB
+    ) {
+
+        mostrarMensaje(
+            "El docente B supera su límite de horas.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    // ========================================
+    // ASIGNACIÓN
+    // ========================================
+
+    docente.horasAsignadas += horas;
+
+
+    asignaciones.push({
+
+        id: Date.now(),
+
+        docenteId: docente.id,
+
+        docente: docente.nombre,
+
+        asignaturaId: asignatura.id,
+
+        asignatura: asignatura.nombre,
+
+        tipo: asignatura.tipo,
+
+        cuatrimestre: cuatrimestre,
+
+        horas: horas
+
+    });
+
+
+    guardarDatos();
+
+    document.getElementById(
+        "horasAsignacion"
+    ).value = "";
+
+
+    mostrarMensaje(
+        "Horas asignadas correctamente.",
+        "correcto"
+    );
+
+
+    actualizarTodo();
+
+}
+
+
+// ============================================
+// MENSAJE
+// ============================================
+
+function mostrarMensaje(texto, tipo) {
+
+    const mensaje =
+        document.getElementById(
+            "mensaje"
+        );
+
+
+    mensaje.className =
+        tipo === "error"
+            ? "alerta"
+            : "correcto";
+
+
+    mensaje.textContent = texto;
+
+}
+
+
+// ============================================
+// TABLA ASIGNACIONES
+// ============================================
 
 function actualizarAsignaciones() {
 
     const tabla =
-        document.getElementById("tablaAsignaciones");
+        document.getElementById(
+            "tablaAsignaciones"
+        );
 
 
     tabla.innerHTML = "";
@@ -405,17 +911,39 @@ function actualizarAsignaciones() {
 
         tabla.innerHTML += `
 
-            <tr>
+        <tr>
 
-                <td>${asignacion.docente}</td>
+            <td>
+                ${asignacion.docente}
+            </td>
 
-                <td>${asignacion.asignatura}</td>
+            <td>
+                ${asignacion.asignatura}
+            </td>
 
-                <td>${asignacion.horas}</td>
+            <td>
+                ${asignacion.tipo}
+            </td>
 
-                <td>${asignacion.tipo}</td>
+            <td>
+                ${asignacion.cuatrimestre}
+            </td>
 
-            </tr>
+            <td>
+                ${asignacion.horas}
+            </td>
+
+            <td>
+
+                <button
+                    onclick="eliminarAsignacion(${asignacion.id})"
+                >
+                    Eliminar
+                </button>
+
+            </td>
+
+        </tr>
 
         `;
 
@@ -424,91 +952,187 @@ function actualizarAsignaciones() {
 }
 
 
-// ==========================================
-// HORAS TOTALES
-// ==========================================
+// ============================================
+// ELIMINAR ASIGNACIÓN
+// ============================================
 
-function actualizarHoras() {
+function eliminarAsignacion(id) {
 
-    let asignadas = 0;
-
-
-    docentes.forEach(docente => {
-
-        asignadas += docente.horasAsignadas;
-
-    });
+    const asignacion =
+        asignaciones.find(
+            a => a.id === id
+        );
 
 
-    const restantes =
-        horasTotales - asignadas;
+    if (!asignacion) return;
 
 
-    document.getElementById(
-        "horasDisponibles"
-    ).textContent = horasTotales;
+    const docente =
+        docentes.find(
+            d => d.id === asignacion.docenteId
+        );
 
 
-    document.getElementById(
-        "horasAsignadas"
-    ).textContent = asignadas;
+    if (docente) {
+
+        docente.horasAsignadas -=
+            asignacion.horas;
+
+    }
 
 
-    document.getElementById(
-        "horasRestantes"
-    ).textContent = restantes;
+    asignaciones =
+        asignaciones.filter(
+            a => a.id !== id
+        );
+
+
+    guardarDatos();
+
+    actualizarTodo();
 
 }
 
 
-// ==========================================
+// ============================================
+// CALCULAR HORAS
+// ============================================
+
+function calcularHorasTotales() {
+
+    return asignaciones.reduce(
+
+        (total, asignacion) =>
+
+            total + asignacion.horas,
+
+        0
+
+    );
+
+}
+
+
+// ============================================
+// RESUMEN
+// ============================================
+
+function actualizarResumen() {
+
+    const asignadas =
+        calcularHorasTotales();
+
+    const restantes =
+        configuracion.horasTotales -
+        asignadas;
+
+
+    document.getElementById(
+        "totalHoras"
+    ).textContent =
+        configuracion.horasTotales;
+
+
+    document.getElementById(
+        "horasAsignadas"
+    ).textContent =
+        asignadas;
+
+
+    document.getElementById(
+        "horasRestantes"
+    ).textContent =
+        restantes;
+
+
+    document.getElementById(
+        "totalDocentes"
+    ).textContent =
+        docentes.length;
+
+}
+
+
+// ============================================
 // ALERTAS
-// ==========================================
+// ============================================
 
 function actualizarAlertas() {
 
-    const lista =
-        document.getElementById("listaAlertas");
+    const contenedor =
+        document.getElementById(
+            "listaAlertas"
+        );
 
-    lista.innerHTML = "";
 
-    let contador = 0;
+    contenedor.innerHTML = "";
+
+    let cantidad = 0;
 
 
     docentes.forEach(docente => {
 
         if (
             docente.horasAsignadas <
-            minimoHoras
+            configuracion.flexible
         ) {
 
-            const faltantes =
-                minimoHoras -
+            const faltan =
+                configuracion.minimo -
                 docente.horasAsignadas;
 
 
-            lista.innerHTML += `
+            contenedor.innerHTML += `
 
-                <div class="alerta">
+            <div class="alerta">
 
-                    <strong>
-                        ${docente.nombre}
-                    </strong>
+                <strong>
+                    ${docente.nombre}
+                </strong>
 
-                    tiene
-                    ${docente.horasAsignadas}
-                    horas.
+                tiene solamente
+                ${docente.horasAsignadas}
+                horas.
 
-                    Le faltan
-                    ${faltantes}
-                    horas para alcanzar el mínimo
-                    de ${minimoHoras}.
+                Debe revisarse porque está
+                por debajo del mínimo flexible.
 
-                </div>
+            </div>
 
             `;
 
-            contador++;
+
+            cantidad++;
+
+        }
+
+        else if (
+            docente.horasAsignadas <
+            configuracion.minimo
+        ) {
+
+            contenedor.innerHTML += `
+
+            <div class="advertencia">
+
+                <strong>
+                    ${docente.nombre}
+                </strong>
+
+                tiene
+                ${docente.horasAsignadas}
+                horas.
+
+                Está por debajo del mínimo
+                de ${configuracion.minimo},
+                pero entra dentro del margen flexible.
+
+            </div>
+
+            `;
+
+
+            cantidad++;
 
         }
 
@@ -516,20 +1140,20 @@ function actualizarAlertas() {
 
 
     document.getElementById(
-        "numeroAlertas"
-    ).textContent = contador;
+        "totalAlertas"
+    ).textContent =
+        cantidad;
 
 
-    if (contador === 0) {
+    if (cantidad === 0) {
 
-        lista.innerHTML = `
+        contenedor.innerHTML = `
 
-            <div class="correcto">
+        <div class="correcto">
 
-                No hay docentes por debajo
-                del mínimo establecido.
+            No existen alertas de horas.
 
-            </div>
+        </div>
 
         `;
 
@@ -538,90 +1162,81 @@ function actualizarAlertas() {
 }
 
 
-// ==========================================
-// CONFIGURACIÓN SEGÚN PRESUPUESTO
-// ==========================================
-
-function actualizarConfiguracion() {
-
-    presupuesto = Number(
-        document.getElementById("presupuesto").value
-    );
-
-
-    minimoHoras = Number(
-        document.getElementById("minimoHoras").value
-    );
-
-
-    if (presupuesto <= 0) {
-
-        alert(
-            "El presupuesto debe ser mayor a cero."
-        );
-
-        return;
-    }
-
-
-    if (minimoHoras < 22) {
-
-        alert(
-            "El mínimo no puede ser menor a 22 horas."
-        );
-
-        return;
-    }
-
-
-    actualizarSistema();
-
-
-    alert(
-        `Configuración actualizada.
-        
-        Presupuesto: $${presupuesto}
-        
-        Mínimo de horas: ${minimoHoras}`
-    );
-
-}
-
-
-// ==========================================
+// ============================================
 // CUATRIMESTRE
-// ==========================================
+// ============================================
 
-function cambiarCuatrimestre() {
+function mostrarCuatrimestre() {
 
     const cuatrimestre =
         document.getElementById(
-            "cuatrimestreSeleccionado"
+            "filtroCuatrimestre"
         ).value;
 
 
-    document.getElementById(
-        "resultadoCuatrimestre"
-    ).innerHTML = `
+    const lista =
+        asignaciones.filter(
+            a =>
+                a.cuatrimestre ===
+                cuatrimestre
+        );
 
-        Actualmente estás consultando
-        el <strong>
-        ${cuatrimestre}° cuatrimestre
-        </strong>.
 
-        <br><br>
+    let total = 0;
 
-        Las horas deberán ser asignadas
-        de acuerdo con la autorización
-        de Recursos Humanos.
+
+    lista.forEach(
+        a => total += a.horas
+    );
+
+
+    const contenedor =
+        document.getElementById(
+            "resumenCuatrimestre"
+        );
+
+
+    contenedor.innerHTML = `
+
+        <div class="resumen">
+
+            <h3>
+                ${cuatrimestre}° cuatrimestre
+            </h3>
+
+            <p>
+                Horas asignadas:
+                <strong>${total}</strong>
+            </p>
+
+        </div>
 
     `;
+
+
+    if (lista.length === 0) {
+
+        contenedor.innerHTML += `
+
+        <div class="advertencia">
+
+            Todavía no existen asignaciones
+            para este cuatrimestre.
+
+        </div>
+
+        `;
+
+    }
 
 }
 
 
-// ==========================================
-// INICIAR SISTEMA
-// ==========================================
+// ============================================
+// CONFIGURACIÓN
+// ============================================
 
-actualizarSistema();
+function cargarConfiguracion() {
+
+    document.getElementById(
+   
