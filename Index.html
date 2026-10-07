@@ -4,250 +4,549 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Sistema de Asignación de Horas</title>
+    <title>Sistema de Asignación Docente</title>
 
     <link rel="stylesheet" href="estilo.css">
 </head>
 
 <body>
 
-<header>
-    <h1>Sistema de Asignación de Horas</h1>
-    <p>Control de docentes, asignaturas y distribución de horas</p>
-</header>
+<!-- =========================
+     LOGIN
+========================= -->
 
-<nav>
-    <button onclick="mostrarSeccion('inicio')">Inicio</button>
-    <button onclick="mostrarSeccion('docentes')">Docentes</button>
-    <button onclick="mostrarSeccion('asignacion')">Asignación</button>
-    <button onclick="mostrarSeccion('cuatrimestre')">Cuatrimestre</button>
-    <button onclick="mostrarSeccion('alertas')">Alertas</button>
-</nav>
+<div id="login">
 
-<main>
+    <div class="login-box">
 
-    <!-- INICIO -->
+        <h1>Asignación Docente</h1>
 
-    <section id="inicio" class="seccion">
+        <p>Acceso para Directores</p>
 
-        <h2>Resumen del sistema</h2>
+        <input
+            type="text"
+            id="usuario"
+            placeholder="Usuario"
+        >
 
-        <div class="tarjetas">
+        <input
+            type="password"
+            id="password"
+            placeholder="Contraseña"
+        >
 
-            <div class="tarjeta">
-                <h3>Horas disponibles</h3>
-                <p id="horasDisponibles">5833</p>
-            </div>
-
-            <div class="tarjeta">
-                <h3>Horas asignadas</h3>
-                <p id="horasAsignadas">0</p>
-            </div>
-
-            <div class="tarjeta">
-                <h3>Horas restantes</h3>
-                <p id="horasRestantes">5833</p>
-            </div>
-
-            <div class="tarjeta">
-                <h3>Alertas</h3>
-                <p id="numeroAlertas">0</p>
-            </div>
-
-        </div>
-
-        <h2>Configuración</h2>
-
-        <label>
-            Presupuesto disponible:
-            <input type="number" id="presupuesto" value="100000">
-        </label>
-
-        <br><br>
-
-        <label>
-            Mínimo de horas:
-            <input type="number" id="minimoHoras" value="25">
-        </label>
-
-        <br><br>
-
-        <button onclick="actualizarConfiguracion()">
-            Actualizar configuración
+        <button onclick="iniciarSesion()">
+            Iniciar sesión
         </button>
 
-    </section>
+        <p id="errorLogin" class="error"></p>
+
+    </div>
+
+</div>
 
 
-    <!-- DOCENTES -->
+<!-- =========================
+     SISTEMA
+========================= -->
 
-    <section id="docentes" class="seccion oculto">
+<div id="sistema" class="oculto">
 
-        <h2>Registro de docentes</h2>
+    <header>
 
-        <div class="formulario">
+        <div>
+            <h1>Sistema de Asignación Docente</h1>
 
-            <input
-                type="text"
-                id="nombreDocente"
-                placeholder="Nombre del docente"
+            <p>
+                Administración de horas académicas
+            </p>
+        </div>
+
+        <button class="cerrar" onclick="cerrarSesion()">
+            Cerrar sesión
+        </button>
+
+    </header>
+
+
+    <nav>
+
+        <button onclick="mostrar('inicio')">
+            Inicio
+        </button>
+
+        <button onclick="mostrar('docentes')">
+            Docentes
+        </button>
+
+        <button onclick="mostrar('asignaturas')">
+            Asignaturas
+        </button>
+
+        <button onclick="mostrar('asignaciones')">
+            Asignaciones
+        </button>
+
+        <button onclick="mostrar('cuatrimestre')">
+            Cuatrimestre
+        </button>
+
+        <button onclick="mostrar('configuracion')">
+            Configuración
+        </button>
+
+        <button onclick="mostrar('alertas')">
+            Alertas
+        </button>
+
+    </nav>
+
+
+    <main>
+
+
+        <!-- =========================
+             INICIO
+        ========================= -->
+
+        <section id="inicio" class="seccion">
+
+            <h2>Panel principal</h2>
+
+            <div class="tarjetas">
+
+                <div class="tarjeta">
+                    <span>Horas disponibles</span>
+                    <strong id="totalHoras">5833</strong>
+                </div>
+
+                <div class="tarjeta">
+                    <span>Horas asignadas</span>
+                    <strong id="horasAsignadas">0</strong>
+                </div>
+
+                <div class="tarjeta">
+                    <span>Horas restantes</span>
+                    <strong id="horasRestantes">5833</strong>
+                </div>
+
+                <div class="tarjeta">
+                    <span>Docentes</span>
+                    <strong id="totalDocentes">0</strong>
+                </div>
+
+                <div class="tarjeta">
+                    <span>Alertas</span>
+                    <strong id="totalAlertas">0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="resumen">
+
+                <h3>Estado del sistema</h3>
+
+                <p id="estadoSistema">
+                    Sistema listo para realizar asignaciones.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             DOCENTES
+        ========================= -->
+
+        <section id="docentes" class="seccion oculto">
+
+            <h2>Registro de docentes</h2>
+
+            <div class="formulario">
+
+                <input
+                    type="text"
+                    id="nombreDocente"
+                    placeholder="Nombre completo"
+                >
+
+                <select id="tipoDocente">
+
+                    <option value="A">
+                        Docente A
+                    </option>
+
+                    <option value="B">
+                        Docente B
+                    </option>
+
+                    <option value="TC">
+                        Tiempo Completo
+                    </option>
+
+                </select>
+
+
+                <input
+                    type="number"
+                    id="horasRH"
+                    min="1"
+                    placeholder="Horas autorizadas por RH"
+                >
+
+
+                <input
+                    type="number"
+                    id="limiteB"
+                    min="1"
+                    placeholder="Límite B"
+                >
+
+
+                <label class="check">
+
+                    <input
+                        type="checkbox"
+                        id="compartido"
+                    >
+
+                    Docente compartido
+
+                </label>
+
+
+                <button onclick="agregarDocente()">
+                    Agregar docente
+                </button>
+
+            </div>
+
+
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Docente</th>
+                            <th>Tipo</th>
+                            <th>RH</th>
+                            <th>Asignadas</th>
+                            <th>Compartido</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tablaDocentes"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ASIGNATURAS
+        ========================= -->
+
+        <section id="asignaturas" class="seccion oculto">
+
+            <h2>Asignaturas</h2>
+
+            <div class="formulario">
+
+                <input
+                    type="text"
+                    id="nombreAsignatura"
+                    placeholder="Nombre de la asignatura"
+                >
+
+                <input
+                    type="number"
+                    id="horasAsignatura"
+                    min="1"
+                    placeholder="Horas"
+                >
+
+                <select id="tipoAsignatura">
+
+                    <option value="A">
+                        A
+                    </option>
+
+                    <option value="B">
+                        B
+                    </option>
+
+                </select>
+
+
+                <button onclick="agregarAsignatura()">
+                    Agregar asignatura
+                </button>
+
+            </div>
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Asignatura</th>
+                        <th>Tipo</th>
+                        <th>Horas</th>
+                        <th>Acción</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaAsignaturas"></tbody>
+
+            </table>
+
+        </section>
+
+
+        <!-- =========================
+             ASIGNACIONES
+        ========================= -->
+
+        <section id="asignaciones" class="seccion oculto">
+
+            <h2>Asignación de horas</h2>
+
+
+            <div class="formulario">
+
+                <select id="selectDocente">
+
+                    <option value="">
+                        Seleccionar docente
+                    </option>
+
+                </select>
+
+
+                <select id="selectAsignatura">
+
+                    <option value="">
+                        Seleccionar asignatura
+                    </option>
+
+                </select>
+
+
+                <select id="selectCuatrimestre">
+
+                    <option value="1">
+                        1er cuatrimestre
+                    </option>
+
+                    <option value="2">
+                        2do cuatrimestre
+                    </option>
+
+                    <option value="3">
+                        3er cuatrimestre
+                    </option>
+
+                </select>
+
+
+                <input
+                    type="number"
+                    id="horasAsignacion"
+                    min="1"
+                    placeholder="Horas a asignar"
+                >
+
+
+                <button onclick="asignarHoras()">
+                    Asignar horas
+                </button>
+
+            </div>
+
+
+            <div id="mensaje"></div>
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Docente</th>
+                        <th>Asignatura</th>
+                        <th>Tipo</th>
+                        <th>Cuatrimestre</th>
+                        <th>Horas</th>
+                        <th>Acción</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tablaAsignaciones"></tbody>
+
+            </table>
+
+        </section>
+
+
+        <!-- =========================
+             CUATRIMESTRE
+        ========================= -->
+
+        <section id="cuatrimestre" class="seccion oculto">
+
+            <h2>Distribución por cuatrimestre</h2>
+
+            <select
+                id="filtroCuatrimestre"
+                onchange="mostrarCuatrimestre()"
             >
 
-            <select id="tipoDocente">
-
-                <option value="A">
-                    Docente A
+                <option value="1">
+                    1er cuatrimestre
                 </option>
 
-                <option value="B">
-                    Docente B
+                <option value="2">
+                    2do cuatrimestre
                 </option>
 
-                <option value="TC">
-                    Tiempo Completo
+                <option value="3">
+                    3er cuatrimestre
                 </option>
 
             </select>
 
-            <input
-                type="number"
-                id="horasRH"
-                placeholder="Horas asignadas por RH"
-                min="0"
-            >
 
-            <label>
-                <input type="checkbox" id="docenteCompartido">
-                Docente compartido
-            </label>
+            <div id="resumenCuatrimestre"></div>
 
-            <button onclick="agregarDocente()">
-                Agregar docente
+        </section>
+
+
+        <!-- =========================
+             CONFIGURACIÓN
+        ========================= -->
+
+        <section id="configuracion" class="seccion oculto">
+
+            <h2>Configuración del sistema</h2>
+
+
+            <div class="config">
+
+                <label>
+                    Horas totales disponibles
+
+                    <input
+                        type="number"
+                        id="configHoras"
+                        value="5833"
+                    >
+
+                </label>
+
+
+                <label>
+                    Presupuesto
+
+                    <input
+                        type="number"
+                        id="configPresupuesto"
+                        value="100000"
+                    >
+
+                </label>
+
+
+                <label>
+                    Mínimo normal
+
+                    <input
+                        type="number"
+                        id="configMinimo"
+                        value="25"
+                    >
+
+                </label>
+
+
+                <label>
+                    Mínimo flexible
+
+                    <input
+                        type="number"
+                        id="configFlexible"
+                        value="22"
+                    >
+
+                </label>
+
+
+                <label>
+                    Máximo tipo A
+
+                    <input
+                        type="number"
+                        id="configMaxA"
+                        value="40"
+                    >
+
+                </label>
+
+
+                <label>
+                    Máximo tipo B
+
+                    <input
+                        type="number"
+                        id="configMaxB"
+                        value="30"
+                    >
+
+                </label>
+
+            </div>
+
+
+            <button onclick="guardarConfiguracion()">
+                Guardar configuración
             </button>
 
-        </div>
-
-        <table>
-
-            <thead>
-
-                <tr>
-                    <th>Docente</th>
-                    <th>Tipo</th>
-                    <th>Horas RH</th>
-                    <th>Compartido</th>
-                    <th>Horas asignadas</th>
-                    <th>Estado</th>
-                </tr>
-
-            </thead>
-
-            <tbody id="tablaDocentes"></tbody>
-
-        </table>
-
-    </section>
+        </section>
 
 
-    <!-- ASIGNACIÓN -->
+        <!-- =========================
+             ALERTAS
+        ========================= -->
 
-    <section id="asignacion" class="seccion oculto">
+        <section id="alertas" class="seccion oculto">
 
-        <h2>Asignación de horas</h2>
+            <h2>Alertas</h2>
 
-        <div class="formulario">
+            <div id="listaAlertas"></div>
 
-            <select id="docenteAsignacion">
-                <option value="">
-                    Seleccionar docente
-                </option>
-            </select>
+        </section>
 
-            <input
-                type="text"
-                id="asignatura"
-                placeholder="Asignatura"
-            >
+    </main>
 
-            <input
-                type="number"
-                id="horasAsignar"
-                placeholder="Horas"
-                min="1"
-            >
+</div>
 
-            <button onclick="asignarHoras()">
-                Asignar horas
-            </button>
-
-        </div>
-
-        <div id="mensajeAsignacion"></div>
-
-        <h3>Distribución actual</h3>
-
-        <table>
-
-            <thead>
-
-                <tr>
-                    <th>Docente</th>
-                    <th>Asignatura</th>
-                    <th>Horas</th>
-                    <th>Tipo</th>
-                </tr>
-
-            </thead>
-
-            <tbody id="tablaAsignaciones"></tbody>
-
-        </table>
-
-    </section>
-
-
-    <!-- CUATRIMESTRE -->
-
-    <section id="cuatrimestre" class="seccion oculto">
-
-        <h2>Distribución por cuatrimestre</h2>
-
-        <select id="cuatrimestreSeleccionado">
-
-            <option value="1">
-                Primer cuatrimestre
-            </option>
-
-            <option value="2">
-                Segundo cuatrimestre
-            </option>
-
-            <option value="3">
-                Tercer cuatrimestre
-            </option>
-
-        </select>
-
-        <button onclick="cambiarCuatrimestre()">
-            Cargar cuatrimestre
-        </button>
-
-        <p id="resultadoCuatrimestre"></p>
-
-    </section>
-
-
-    <!-- ALERTAS -->
-
-    <section id="alertas" class="seccion oculto">
-
-        <h2>Alertas del sistema</h2>
-
-        <div id="listaAlertas"></div>
-
-    </section>
-
-</main>
 
 <script src="script.js"></script>
 
